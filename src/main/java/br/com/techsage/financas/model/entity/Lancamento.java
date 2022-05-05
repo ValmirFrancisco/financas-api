@@ -63,7 +63,6 @@ public class Lancamento {
 
 	public Lancamento(int id, String descricao, int mes, int ano, BigDecimal valor, TipoLancamento tipo,
 			StatusLancamento status, Usuario usuario, LocalDateTime data_cadastro) {
-		super();
 		this.id = id;
 		this.descricao = descricao;
 		this.mes = mes;
