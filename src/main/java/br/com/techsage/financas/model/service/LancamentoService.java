@@ -1,6 +1,9 @@
 package br.com.techsage.financas.model.service;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
+
 import br.com.techsage.financas.enums.StatusLancamento;
 import br.com.techsage.financas.model.entity.Lancamento;
 
@@ -18,4 +21,7 @@ public interface LancamentoService {
 	
 	void validar(Lancamento lancamento);
 
+	Optional<Lancamento> obterPorId(Integer id);
+	
+	BigDecimal obterSaldoPorUsuario(Integer id);
 }
