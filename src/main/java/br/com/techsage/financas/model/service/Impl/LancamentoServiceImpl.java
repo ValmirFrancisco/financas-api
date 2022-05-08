@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
@@ -54,12 +55,16 @@ public class LancamentoServiceImpl implements LancamentoService {
 	@Override
 	@Transactional(readOnly = true)
 	public List<Lancamento> buscar(Lancamento lancamentoFiltro) {
-		Example example = Example.of( lancamentoFiltro, 
+		Example<Lancamento> example = Example.of( lancamentoFiltro,
 				ExampleMatcher.matching()
+					.withIgnorePaths("id") 
+					.withIgnorePaths("id_usuario")
+					.withIgnorePaths("data_cadastro")
 					.withIgnoreCase()
 					.withStringMatcher(StringMatcher.CONTAINING) );
 		
 		return repository.findAll(example);
+		//return repository.findAll().stream().filter(l -> l.getUsuario().getId() == lancamentoFiltro.getUsuario().getId()).collect(Collectors.toList());
 	}
 
 	@Override

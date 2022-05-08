@@ -1,5 +1,6 @@
 package br.com.techsage.financas.api.resources;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -37,6 +38,14 @@ public class LancamentoResource {
 		this.service = service;
 		this.usuarioService = usuarioService;
 	}
+	
+	@GetMapping("{id}")
+	public ResponseEntity obterLancamento(@PathVariable("id") int id) {
+		return service.obterPorId(id)
+				.map( lancamento -> new ResponseEntity(converter(lancamento), HttpStatus.OK) )
+				.orElseGet( () -> new ResponseEntity(HttpStatus.NOT_FOUND) );
+	}
+	
 
 	@PostMapping
 	public ResponseEntity salvar(@RequestBody LancamentoDTO dto) {
@@ -99,7 +108,10 @@ public class LancamentoResource {
 	@GetMapping
 	public ResponseEntity buscar(@RequestParam(value = "descricao", required = false) String descricao,
 			@RequestParam(value = "mes", required = false) Integer mes,
-			@RequestParam(value = "ano", required = false) Integer ano, @RequestParam("usuario") int idUsuario) {
+			@RequestParam(value = "ano", required = false) Integer ano,
+			@RequestParam(value = "tipo", required = false) String tipo,
+			@RequestParam(value = "status", required = false) String status,
+			@RequestParam("usuario") int idUsuario) {
 
 		Lancamento lancamentoFiltro = new Lancamento();
 		lancamentoFiltro.setDescricao(descricao);
@@ -109,6 +121,25 @@ public class LancamentoResource {
 		}
 		if (ano != null) {
 			lancamentoFiltro.setAno(ano);
+		}
+		if (tipo != null) {
+			if (tipo.equals("RECEITA")) {
+				lancamentoFiltro.setTipo(TipoLancamento.RECEITA);
+			}
+			if (tipo.equals("DESPESA")) {
+				lancamentoFiltro.setTipo(TipoLancamento.DESPESA);
+			}
+		}
+		if (status != null) {
+			if (status.equals("CANCELADO")) {
+				lancamentoFiltro.setStatus(StatusLancamento.CANCELADO);
+			}
+			if (status.equals("EFETIVADO")) {
+				lancamentoFiltro.setStatus(StatusLancamento.EFETIVADO);
+			}
+			if (status.equals("PENDENTE")) {
+				lancamentoFiltro.setStatus(StatusLancamento.PENDENTE);
+			}
 		}
 
 		Optional<Usuario> usuario = usuarioService.obterPorId(idUsuario);
@@ -122,6 +153,18 @@ public class LancamentoResource {
 		List<Lancamento> lancamentos = service.buscar(lancamentoFiltro);
 		return ResponseEntity.ok(lancamentos);
 	}
+	
+	private LancamentoDTO converter(Lancamento lancamento) {
+		LancamentoDTO lancamentoDTO = new LancamentoDTO(lancamento.getId(),
+				lancamento.getDescricao(),
+				lancamento.getMes(),
+				lancamento.getAno(),
+				lancamento.getValor(),
+				lancamento.getTipo().name(),
+				lancamento.getStatus().name(),
+				lancamento.getUsuario().getId());
+		return lancamentoDTO;			
+	}	
 
 	private Lancamento converter(LancamentoDTO dto) {
 		Lancamento lancamento = new Lancamento();
@@ -130,22 +173,21 @@ public class LancamentoResource {
 		lancamento.setAno(dto.getAno());
 		lancamento.setMes(dto.getMes());
 		lancamento.setValor(dto.getValor());
-
-		Usuario usuario = usuarioService.obterPorId(dto.getUsuario())
-				.orElseThrow(() -> new RegraNegocioException("Usuário não encontrado para o Id informado."));
-
+		
+		Usuario usuario = usuarioService
+			.obterPorId(dto.getUsuario())
+			.orElseThrow( () -> new RegraNegocioException("Usuário não encontrado para o Id informado.") );
+		
 		lancamento.setUsuario(usuario);
 
-		lancamento.setData_cadastro(LocalDateTime.now());
-
-		if (dto.getTipo() != null) {
+		if(dto.getTipo() != null) {
 			lancamento.setTipo(TipoLancamento.valueOf(dto.getTipo()));
 		}
-
-		if (dto.getStatus() != null) {
+		
+		if(dto.getStatus() != null) {
 			lancamento.setStatus(StatusLancamento.valueOf(dto.getStatus()));
 		}
-
+		
 		return lancamento;
 	}
 
