@@ -1,10 +1,8 @@
-package br.com.techsage.financas.model.service.Impl;
+package br.com.techsage.financas.service.impl;
 
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import br.com.techsage.financas.exception.ErroAutenticacao;
@@ -13,14 +11,13 @@ import br.com.techsage.financas.model.entity.Usuario;
 import br.com.techsage.financas.model.repository.UsuarioRepository;
 import br.com.techsage.financas.model.service.UsuarioService;
 
-@Service
 public class UsuarioServiceImpl implements UsuarioService {
-	
 	private UsuarioRepository repository;
 	private PasswordEncoder encoder;
-
-	@Autowired
-	public UsuarioServiceImpl(UsuarioRepository repository, PasswordEncoder encoder) {
+	
+	public UsuarioServiceImpl(
+			UsuarioRepository repository, 
+			PasswordEncoder encoder) {
 		super();
 		this.repository = repository;
 		this.encoder = encoder;
@@ -30,16 +27,16 @@ public class UsuarioServiceImpl implements UsuarioService {
 	public Usuario autenticar(String email, String senha) {
 		Optional<Usuario> usuario = repository.findByEmail(email);
 		
-		if (!usuario.isPresent()) {
+		if(!usuario.isPresent()) {
 			throw new ErroAutenticacao("Usuário não encontrado para o email informado.");
 		}
 		
 		boolean senhasBatem = encoder.matches(senha, usuario.get().getSenha());
 		
 		if(!senhasBatem) {
-			throw new ErroAutenticacao("Senha inválida.");			
+			throw new ErroAutenticacao("Senha inválida.");
 		}
-		
+
 		return usuario.get();
 	}
 
@@ -60,10 +57,9 @@ public class UsuarioServiceImpl implements UsuarioService {
 	@Override
 	public void validarEmail(String email) {
 		boolean existe = repository.existsByEmail(email);
-		if (existe) {
+		if(existe) {
 			throw new RegraNegocioException("Já existe um usuário cadastrado com este email.");
 		}
-
 	}
 
 	@Override

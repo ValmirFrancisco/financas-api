@@ -13,22 +13,26 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import br.com.techsage.financas.api.dto.TokenDTO;
 import br.com.techsage.financas.api.dto.UsuarioDTO;
 import br.com.techsage.financas.exception.ErroAutenticacao;
 import br.com.techsage.financas.exception.RegraNegocioException;
 import br.com.techsage.financas.model.entity.Usuario;
 import br.com.techsage.financas.model.service.LancamentoService;
 import br.com.techsage.financas.model.service.UsuarioService;
+import br.com.techsage.financas.service.JwtService;
 
 @RestController
 @RequestMapping("/api/usuarios")
 public class UsuarioResource {
     private UsuarioService service;
     private LancamentoService lancamentoService;
+    private JwtService jwtService;
     
-    public UsuarioResource(UsuarioService service, LancamentoService lancamentoService) {
+    public UsuarioResource(UsuarioService service, LancamentoService lancamentoService, JwtService jwtService) {
                    this.service = service;
                    this.lancamentoService = lancamentoService;
+                   this.jwtService = jwtService;
     }
     
     @PostMapping
@@ -50,11 +54,15 @@ public class UsuarioResource {
     }
     
     @PostMapping("/autenticar")
-    public ResponseEntity autenticar( @RequestBody UsuarioDTO dto) {
+    public ResponseEntity<?> autenticar( @RequestBody UsuarioDTO dto) {
     
                    try {
                                  Usuario usuarioAutenticado = service.autenticar(dto.getEmail(), dto.getSenha());
-                                 return ResponseEntity.ok(usuarioAutenticado);
+                                 
+                     			String token = jwtService.gerarToken(usuarioAutenticado);
+                    			TokenDTO tokenDTO = new TokenDTO(usuarioAutenticado.getNome(), token);
+                    			return ResponseEntity.ok(tokenDTO);
+                                 
                    }
                    catch (ErroAutenticacao e ) {
                                  return ResponseEntity.badRequest().body(e.getMessage());
