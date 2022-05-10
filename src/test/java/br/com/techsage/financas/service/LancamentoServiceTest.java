@@ -186,7 +186,7 @@ public class LancamentoServiceTest {
 	}
 	
 	@Test
-	public void deveREtornarVazioQuandoOLancamentoNaoExiste() {
+	public void deveRetornarVazioQuandoOLancamentoNaoExiste() {
 		//cenário
 		int id = 1;
 		
